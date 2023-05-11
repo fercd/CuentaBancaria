@@ -20,18 +20,19 @@ public class Cuenta {
 
     
 
-    public boolean ingresar(double cantidad) {
-        if (cantidad > 0) {
+    public boolean ingresar(double cantidad) throws Exception, MenorDeCeroException{
+        
+        if (cantidad >= 0) {
             double saldotemp = saldo;
             saldo = saldo + cantidad;
             mov.Registrar("INGRESO", cantidad, saldotemp, saldo);
             return true;
+        } else {
+            throw new MenorDeCeroException();
         }
-        System.out.println("La cantidad a ingresar debe ser mayor que cero");
-        return false;
     }
 
-    public boolean retirar(double cantidad) {
+    public boolean retirar(double cantidad) throws Exception, MenorDeCeroException {
         if (cantidad > 0) {
             if (saldo >= cantidad) {
                 double saldotemp = saldo;
@@ -43,27 +44,32 @@ public class Cuenta {
                         + "Saldo disponible en la cuenta: " + saldo);
             }
         } else {
-            System.out.println("Error: La cantidad a retirar debe ser mayor que cero");
+            throw new MenorDeCeroException();
         }
         return false;
     }
 
     public boolean trasferir(Cuenta cuentaDestino, double cantidad) {
-        if (saldo >= cantidad) {
-            if (cuentaDestino.ingresar(cantidad) == true) {
-                double saldotemp = saldo;
-                saldo = saldo - cantidad;
-                mov.Registrar("TRASFERENCIA A " + cuentaDestino.getTitular(), cantidad, saldotemp, saldo);
-                return true;
+        try {
+            if (saldo >= cantidad) {
+                if (cuentaDestino.ingresar(cantidad) == true) {
+                    double saldotemp = saldo;
+                    saldo = saldo - cantidad;
+                    mov.Registrar("TRASFERENCIA A " + cuentaDestino.getTitular(), cantidad, saldotemp, saldo);
+                    return true;
+                } else {
+                    System.out.println("Error en la trasferencia. No se ha podido realizar por problemas en la Cuenta de "
+                            + cuentaDestino.getTitular());
+                }
             } else {
-                System.out.println("Error en la trasferencia. No se ha podido realizar por problemas en la Cuenta de "
-                        + cuentaDestino.getTitular());
+                System.out.println("No hay suficiente saldo en la cuenta de " + cuentaDestino.getTitular());
             }
-        } else {
-            System.out.println("No hay suficiente saldo en la cuenta para trasferir: " + cantidad + " €\n"
-                    + "Saldo disponible en la cuenta:" + saldo);
-        }
-        return false;
+        } catch (MenorDeCeroException e) {
+            System.out.println("Error en la trasferencia");
+        }  finally {
+            return false;
+        }      
+        
     }
 
     @Override
